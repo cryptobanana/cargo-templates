@@ -9,11 +9,13 @@ use std::{
 
 use structopt::StructOpt;
 
-// Our CLI arguments. (help and version are automatically generated)
-// Documentation on how to use:
-// https://docs.rs/structopt/0.2.10/structopt/index.html#how-to-derivestructopt
 #[derive(StructOpt, Debug)]
-struct Cli {
+#[structopt(
+    name = "{{project-name}}",
+    about = "",
+    version = concat!(env!("CARGO_PKG_VERSION"), concat!("_", env!("GIT_SHORT_HASH")))
+)]
+struct Options {
     // The pattern we want to look for.
     pattern: String,
     // The path of the file we want to look at.
@@ -21,9 +23,8 @@ struct Cli {
 }
 
 fn main() {
-    let args = Cli::from_args();
-    let contents = fs::read_to_string(&args.path)
-        .expect("Could not read file.");
+    let args = Options::from_args();
+    let contents = fs::read_to_string(&args.path).expect("Could not read file.");
     let mut stdout = io::stdout();
     // (Buf) Wraps stdout in a buffer.
     // let mut stdout = BufWriter::new(stdout);
@@ -34,4 +35,3 @@ fn main() {
         }
     }
 }
-
