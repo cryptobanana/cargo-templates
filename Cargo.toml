@@ -5,7 +5,6 @@ authors = ["{{authors}}"]
 edition = "2018"
 
 [dependencies]
-structopt = "0.3"
 log = "0.4.11"
 simple_logger = "1.11.0"
-
+structopt = "0.3"
