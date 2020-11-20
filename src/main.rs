@@ -1,15 +1,9 @@
 use log;
 use log::LevelFilter::{Debug, Error, Info, Trace};
 use simple_logger::SimpleLogger;
-use std::path::PathBuf;
-use std::{
-    fs,
-    io::{self, Write},
-};
 use structopt::StructOpt;
-// (Buf) Uncomment these lines to have the output buffered, this can provide
-// better performance but is not always intuitive behaviour.
-// use std::io::BufWriter;
+
+mod webapp;
 
 #[derive(StructOpt, Debug)]
 #[structopt(
@@ -18,6 +12,10 @@ use structopt::StructOpt;
     version = concat!(env!("CARGO_PKG_VERSION"), concat!("_", env!("GIT_SHORT_HASH")))
 )]
 struct Options {
+    /// Suppress non-error messages
+    #[structopt(short)]
+    quiet: bool,
+
     /// Increase logging verbosity
     #[structopt(short, parse(from_occurrences))]
     verbosity: usize,
@@ -26,35 +24,28 @@ struct Options {
     #[structopt(short, long)]
     some_flag: Option<bool>,
 
-    /// Example filesystem path
-    #[structopt(parse(from_os_str))]
-    path: PathBuf,
+    /// Webserver Port Number
+    #[structopt(long, default_value = "8080")]
+    webserver_port: u16,
 
-    /// Example String-valued Argument
-    #[structopt(default_value = "some value", env = "SOME_ENV_VAR")]
-    pattern: String,
+    /// Webserver IP Address
+    #[structopt(long, default_value = "::1")]
+    webserver_bind_address: std::net::IpAddr,
 }
 
 fn main() {
     let args = Options::from_args();
-    let level = vec![Error, Info, Debug, Trace][(args.verbosity).min(3)];
-    if args.verbosity > 0 {
-        SimpleLogger::new()
-            .with_level(level)
-            .init()
-            .expect("SimpleLogger instantiation failed.");
-    }
+    let level = match args.quiet {
+        true => Error,
+        false => vec![Info, Debug, Trace][(args.verbosity).min(2)],
+    };
+
+    SimpleLogger::new()
+        .with_level(level)
+        .init()
+        .expect("SimpleLogger instantiation failed.");
 
     log::info!("Logging with level {}", level);
 
-    let contents = fs::read_to_string(&args.path).expect("Could not read file.");
-    let mut stdout = io::stdout();
-    // (Buf) Wraps stdout in a buffer.
-    // let mut stdout = BufWriter::new(stdout);
-
-    for (line_no, line) in contents.lines().enumerate() {
-        if line.contains(&args.pattern) {
-            let _ = writeln!(stdout, "{}: {}", line_no + 1, line);
-        }
-    }
+    webapp::main(args.webserver_bind_address, args.webserver_port).unwrap();
 }
