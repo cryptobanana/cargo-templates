@@ -8,7 +8,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     RUSTUP_VERSION=1.24.1
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y wget build-essential git libssl-dev
+RUN apt-get update && apt-get install -y wget build-essential git
 
 RUN set -eux; \
     dpkgArch="$(dpkg --print-architecture)"; \
