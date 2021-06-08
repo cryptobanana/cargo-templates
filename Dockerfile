@@ -7,8 +7,13 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     RUST_VERSION=1.52.1 \
     RUSTUP_VERSION=1.24.1
 
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y wget build-essential git
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
+	wget \
+	build-essential \
+	git \
+	musl-dev \
+        musl-tools
 
 RUN set -eux; \
     dpkgArch="$(dpkg --print-architecture)"; \
@@ -30,14 +35,16 @@ RUN set -eux; \
     cargo --version; \
     rustc --version;
 
+RUN rustup target add x86_64-unknown-linux-musl
+
 WORKDIR /usr/src
 COPY . .
 
-RUN cargo install --path .
+RUN cargo install --path . --target x86_64-unknown-linux-musl
 
-FROM ubuntu:20.04
+FROM scratch
 LABEL maintainer="{{authors}}"
 
 COPY --from=build /usr/local/cargo/bin/{{project-name}} /usr/local/bin/{{project-name}}
 
-CMD ["{{project-name}}", "-vv"]
+CMD ["{{project-name}}", "-v"]
