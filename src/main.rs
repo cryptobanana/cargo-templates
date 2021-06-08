@@ -25,11 +25,11 @@ struct Options {
     some_flag: Option<bool>,
 
     /// Webserver Port Number
-    #[structopt(long, default_value = "8080")]
+    #[structopt(long, default_value = "8080", env = "BIND_PORT")]
     webserver_port: u16,
 
     /// Webserver IP Address
-    #[structopt(long, default_value = "::1")]
+    #[structopt(long, default_value = "::1", env = "BIND_ADDRESS")]
     webserver_bind_address: std::net::IpAddr,
 }
 
